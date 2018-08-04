@@ -1,6 +1,6 @@
 -- MySQL dump 10.16  Distrib 10.1.28-MariaDB, for Win32 (AMD64)
 --
--- Host: 127.0.0.1    Database: jidelna
+-- Host: 127.0.0.1    Database: diner
 -- ------------------------------------------------------
 -- Server version	10.1.26-MariaDB-0+deb9u1
 
@@ -152,7 +152,7 @@ CREATE TABLE `side` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping routines for database 'jidelna'
+-- Dumping routines for database 'diner'
 --
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
