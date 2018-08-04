@@ -1,1 +1,22 @@
+# Files with sensitive content #
+################################
 setupdev/config.json
+
+
+# Python compiled/optimized #
+#############################
+*.pyo
+*.pyc
+
+# Junk files from editor #
+##########################
+*~
+
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
