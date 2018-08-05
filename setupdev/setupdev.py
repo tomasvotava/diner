@@ -30,6 +30,7 @@ eline = "#################################"
 
 import os
 import json
+from ftplib import FTP
 
 from pformat import pprint, pinput
 
