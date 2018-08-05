@@ -30,7 +30,8 @@ eline = "#################################"
 
 import os
 import json
-import sys
+
+from pformat import pprint, pinput
 
 FIRST_RUN = False
 
@@ -39,54 +40,6 @@ VALID_NONEMPTY	= 1
 VALID_NUMBER	= 2
 VALID_FLOAT		= 4
 VALID_LIST		= 8
-
-
-PFORMAT_ATTRIBUTES = {
-	"red":		"\033[91m",
-	"-":		"\033[0m\033[39m\033[49m",
-	"bold":		"\033[1m",
-	"dim":		"\033[2m",
-	"black":	"\033[30m",
-	"green":	"\033[92m",
-	"yellow":	"\033[93m",
-	"blue":		"\033[94m",
-	"magenta":	"\033[95m",
-	"cyan":		"\033[96m",
-	"white":	"\033[97m",
-	"bblack":	"\033[40m",
-	"bred":		"\033[41m",
-	"bgreen":	"\033[42m",
-	"bwhite":	"\033[107m",
-	"normal":	"\033[0m"
-}
-
-def tty_supports_color():
-    """
-    Returns True if the running system's terminal supports color, and False
-    otherwise.
-    Source: https://stackoverflow.com/questions/7445658/how-to-detect-if-the-console-does-support-ansi-escape-codes-in-python
-    Thanks
-    """
-    plat = sys.platform
-    supported_platform = plat != 'Pocket PC' and (plat != 'win32' or
-                                                  'ANSICON' in os.environ)
-    # isatty is not always implemented, #6223.
-    is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
-    if not supported_platform or not is_a_tty:
-        return False
-    return True
-
-
-def pformat(string):
-	for att in PFORMAT_ATTRIBUTES:
-		string = string.replace(":%s:"%att,PFORMAT_ATTRIBUTES[att] if tty_supports_color() else "")
-	return (string+(PFORMAT_ATTRIBUTES["-"] if tty_supports_color() else ""))
-
-def pprint(string):
-	print(pformat(string))
-
-def pinput(prompt):
-	return input(pformat(prompt))
 
 def get_config(prompt,default=None,validation=VALID_VALID,options=[]):
 	e = VALID_VALID
