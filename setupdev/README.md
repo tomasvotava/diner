@@ -10,18 +10,18 @@ Setup scripts for development usage.
 ### Install prerequisites
 #### Install pformat
 ```
-git clone https://github.com/tomasvotava/pformat.git
-cd pformat
-./setup.py install
+$ git clone https://github.com/tomasvotava/pformat.git
+$ cd pformat
+$ ./setup.py install
 ```
 
 #### Install mysql-connector
 ```
-python3 -m pip install --upgrade pip
-python3 -m pip install mysql-connector
+$ python3 -m pip install --upgrade pip
+$ python3 -m pip install mysql-connector
 ```
 ### Make the script executable
-```# chmod u+x setupdev.py```
+```$ chmod u+x setupdev.py```
 ### Run the script
 ```# ./setupdev.py```
 
