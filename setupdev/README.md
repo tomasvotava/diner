@@ -9,7 +9,7 @@ Setup scripts for development usage.
 ## Usage
 ### Install prerequisites
 #### Install pformat
-```
+```bash
 $ git clone https://github.com/tomasvotava/pformat.git
 $ cd pformat
 $ ./setup.py install
