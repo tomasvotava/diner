@@ -60,10 +60,27 @@ PFORMAT_ATTRIBUTES = {
 	"normal":	"\033[0m"
 }
 
+def tty_supports_color():
+    """
+    Returns True if the running system's terminal supports color, and False
+    otherwise.
+    Source: https://stackoverflow.com/questions/7445658/how-to-detect-if-the-console-does-support-ansi-escape-codes-in-python
+    Thanks
+    """
+    plat = sys.platform
+    supported_platform = plat != 'Pocket PC' and (plat != 'win32' or
+                                                  'ANSICON' in os.environ)
+    # isatty is not always implemented, #6223.
+    is_a_tty = hasattr(sys.stdout, 'isatty') and sys.stdout.isatty()
+    if not supported_platform or not is_a_tty:
+        return False
+    return True
+
+
 def pformat(string):
 	for att in PFORMAT_ATTRIBUTES:
-		string = string.replace(":%s:"%att,PFORMAT_ATTRIBUTES[att])
-	return (string+PFORMAT_ATTRIBUTES["-"])
+		string = string.replace(":%s:"%att,PFORMAT_ATTRIBUTES[att] if tty_supports_color() else "")
+	return (string+(PFORMAT_ATTRIBUTES["-"] if tty_supports_color() else ""))
 
 def pprint(string):
 	print(pformat(string))
@@ -82,8 +99,10 @@ def get_config(prompt,default=None,validation=VALID_VALID,options=[]):
 			pprint(":bwhite::red:Integer numbers only.")
 		if (e & VALID_FLOAT):
 			pprint(":bwhite::red:Floating point numbers only.")
+		if (e & VALID_LIST):
+			pprint(":bwhite::red:Choose from list of values only.")
 		if (validation & VALID_LIST) and len(options)>0:
-			dstring = options[0]+("/".join(options[1:]))
+			dstring = "/".join(options)
 		elif (validation & VALID_LIST) and len(options)==1:
 			dstring = options[0]
 		else:
@@ -95,6 +114,7 @@ def get_config(prompt,default=None,validation=VALID_VALID,options=[]):
 			e = VALID_NONEMPTY
 			continue
 		if (validation & VALID_NUMBER):
+			if i=="": i = default
 			try: int(i)
 			except ValueError:
 				e = VALID_NUMBER
@@ -104,6 +124,9 @@ def get_config(prompt,default=None,validation=VALID_VALID,options=[]):
 			except ValueError:
 				e = VALID_FLOAT
 				continue
+		if (validation & VALID_LIST) and (i.lower() not in list(map(str.lower,options))):
+			e = VALID_LIST
+			continue
 		done = True
 		break
 	if (i==""): i = default
@@ -112,17 +135,45 @@ def get_config(prompt,default=None,validation=VALID_VALID,options=[]):
 
 if (not os.path.exists("config.json")):
 	FIRST_RUN = True
-	pprint(":bold:We will need to set few things up a little at the begining.")
+	pprint(":bold:We will need to set a few things up a little at the begining.")
+	conf_store = get_config("Do you want to store these settings? Passwords will be stored unencrypted :red:!INSECURE!:-:",None,VALID_LIST,["y","n"])
 	settings_return = True
+	pprint("\n")
 	#DB settings
 	pprint(":green:"+eline)
 	pprint(":bold::green:#DB Settings#")
 	pprint(":green:"+eline)
 	db_host = get_config("Database host","localhost")
 	db_user = get_config("Database user name",None,VALID_NONEMPTY)
-	db_pass = get_config("Database password","")
+	db_pass = get_config("Database password :red:!VISIBLE!:-:","")
 	db_name = get_config("Database name","dme")
+	pprint("\n")
+	pprint(":green:"+eline)
+	pprint(":bold::green:#Web Server settings#")
+	pprint(":green:"+eline)
 	
-	conf_store = get_config("Do you want to store these settings? Password will be stored unencrypted :red:!INSECURE!:-:",None,VALID_LIST,["Y","N"])
-
-	if (db_host==""): db_host = "localhost"
+	www_remote = get_config("Local webserver or remote (FTP)",None,VALID_LIST,["local","ftp"]).lower()
+	if (www_remote=="local"):
+		### Local webserver
+		while True:
+			www_location = os.path.abspath(get_config("WWW data location","/var/www/dme"))
+			www_overwrite = "y"
+			if (os.path.exists(www_location)):
+				www_overwrite = get_config("Location exists, overwrite?",None,VALID_LIST,["y","n"])
+				if (www_overwrite.lower()=="n"): continue
+				else: break
+			else:
+				try:
+					os.makedirs(www_location)
+				except Exception as m:
+					pprint(":red:"+str(m)+":-:")
+					pprint(":red::bold:Invalid path or insufficient rights.:-:")
+					continue
+			break
+	else:
+		### FTP webserver
+		ftp_host = get_config("FTP host","localhost")
+		ftp_port = int(get_config("FTP port",21,VALID_NUMBER))
+		ftp_user = get_config("FTP user",None,VALID_NONEMPTY)
+		ftp_pass = get_config("FTP password :red:!VISIBLE!:-:","")
+		pprint("FTP settings review: :green:ftp://%s@%s:%d:-:"%(ftp_user,ftp_host,ftp_port))
