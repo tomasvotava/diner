@@ -6,9 +6,15 @@ Setup scripts for development usage.
 - *pformat* library for Python ([Available on GitHub](https://github.com/tomasvotava/pformat))
 
 ## Usage
-#### Make the script executable
+### Install prerequisites
+#### Install pformat
+```
+git clone https://github.com/tomasvotava/pformat.git
+cd pformat 
+```
+### Make the script executable
 ```# chmod u+x setupdev.py```
-#### Run the script
+### Run the script
 ```# ./setupdev.py```
 
 Follow the instructions in terminal.
