@@ -11,6 +11,7 @@ setupdev/config.json
 # Junk files from editor #
 ##########################
 *~
+*.bak
 
 # Compiled source #
 ###################
@@ -20,3 +21,14 @@ setupdev/config.json
 *.exe
 *.o
 *.so
+
+# Compressed Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip

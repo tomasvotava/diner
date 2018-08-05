@@ -1,0 +1,5 @@
+Order allow,deny
+Allow from all
+<FilesMatch "config\.php|functions.php">
+	Deny from all
+</FilesMatch>
