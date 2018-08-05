@@ -1,6 +1,6 @@
--- MySQL dump 10.16  Distrib 10.1.28-MariaDB, for Win32 (AMD64)
+-- MySQL dump 10.16  Distrib 10.1.30-MariaDB, for CYGWIN (x86_64)
 --
--- Host: 127.0.0.1    Database: diner
+-- Host: zumpa-vps.tk    Database: diner
 -- ------------------------------------------------------
 -- Server version	10.1.26-MariaDB-0+deb9u1
 
@@ -23,15 +23,15 @@ DROP TABLE IF EXISTS `contact`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `contact` (
-  `ID` varchar(32) NOT NULL,
-  `DisplayName` varchar(255) NOT NULL,
-  `Name` varchar(255) DEFAULT NULL,
-  `Phone` varchar(100) DEFAULT NULL,
-  `Email` varchar(255) DEFAULT NULL,
-  `Address` varchar(255) DEFAULT NULL,
-  `City` varchar(255) DEFAULT NULL,
-  `PostCode` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`ID`)
+  `id` varchar(32) NOT NULL,
+  `display_name` varchar(255) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `phone` varchar(100) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `city` varchar(255) DEFAULT NULL,
+  `post_code` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -43,14 +43,14 @@ DROP TABLE IF EXISTS `customer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `customer` (
-  `ID` varchar(32) NOT NULL,
-  `DisplayName` varchar(25) NOT NULL,
-  `ContactID` varchar(32) DEFAULT NULL,
-  `EmailUpdates` bit(1) NOT NULL DEFAULT b'0',
-  `Notes` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`ID`),
-  KEY `customer_contact_FK` (`ContactID`),
-  CONSTRAINT `customer_contact_FK` FOREIGN KEY (`ContactID`) REFERENCES `contact` (`ID`) ON DELETE SET NULL
+  `id` varchar(32) NOT NULL,
+  `display_name` varchar(25) NOT NULL,
+  `contact_id` varchar(32) DEFAULT NULL,
+  `email_updates` bit(1) NOT NULL DEFAULT b'0',
+  `note` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `customer_contact_FK` (`contact_id`),
+  CONSTRAINT `customer_contact_FK` FOREIGN KEY (`contact_id`) REFERENCES `contact` (`ID`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -62,14 +62,17 @@ DROP TABLE IF EXISTS `dish`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `dish` (
-  `ID` varchar(32) NOT NULL,
-  `DisplayName` varchar(255) NOT NULL,
-  `Vegan` bit(1) NOT NULL,
-  `Vegetarian` bit(1) NOT NULL,
-  `Lowfat` bit(1) NOT NULL,
-  `Created` date NOT NULL,
-  `LastUsed` date DEFAULT NULL,
-  PRIMARY KEY (`ID`)
+  `id` varchar(32) NOT NULL,
+  `display_name` varchar(255) NOT NULL,
+  `meat_id` varchar(32) DEFAULT NULL,
+  `vegan` bit(1) NOT NULL,
+  `vegetarian` bit(1) NOT NULL,
+  `lowfat` bit(1) NOT NULL,
+  `created` date NOT NULL,
+  `last_used` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `dish_meat_FK` (`meat_id`),
+  CONSTRAINT `dish_meat_FK` FOREIGN KEY (`meat_id`) REFERENCES `meat` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -93,8 +96,22 @@ CREATE TABLE `meal` (
   PRIMARY KEY (`ID`),
   KEY `meal_side_FK` (`SideID`),
   KEY `meal_dish_FK` (`DishID`),
-  CONSTRAINT `meal_dish_FK` FOREIGN KEY (`DishID`) REFERENCES `dish` (`ID`) ON DELETE SET NULL,
+  CONSTRAINT `meal_dish_FK` FOREIGN KEY (`DishID`) REFERENCES `dish` (`id`) ON DELETE SET NULL,
   CONSTRAINT `meal_side_FK` FOREIGN KEY (`SideID`) REFERENCES `side` (`ID`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `meat`
+--
+
+DROP TABLE IF EXISTS `meat`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `meat` (
+  `id` varchar(32) NOT NULL,
+  `display_name` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -164,4 +181,4 @@ CREATE TABLE `side` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-08-04 13:15:17
+-- Dump completed on 2018-08-05 19:11:34
