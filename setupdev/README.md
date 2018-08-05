@@ -1,8 +1,10 @@
 # Development Setup
-Setup scripts for development use.
+Setup scripts for development usage.
 
 ## Usage
 #### Make the script executable
-`# chmod u+x setupdev.py`
+```# chmod u+x setupdev.py```
 #### Run the script
-`# ./setupdev.py`
+```# ./setupdev.py```
+
+Follow the instructions in terminal.
