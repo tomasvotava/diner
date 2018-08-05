@@ -16,13 +16,17 @@ $ ./setup.py install
 ```
 
 #### Install mysql-connector
-```
+```bash
 $ python3 -m pip install --upgrade pip
 $ python3 -m pip install mysql-connector
 ```
 ### Make the script executable
-```$ chmod u+x setupdev.py```
+```bash
+$ chmod u+x setupdev.py
+```
 ### Run the script
-```# ./setupdev.py```
+```bash
+# ./setupdev.py
+```
 
 Follow the instructions in terminal.
