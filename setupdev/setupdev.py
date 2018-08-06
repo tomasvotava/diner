@@ -22,9 +22,9 @@
 #  
 #  
 
-#
-#	Setup the environment for development purposes
-#
+"""
+Setup the environment for development purposes
+"""
 
 eline = "#################################"
 
@@ -36,40 +36,44 @@ from pformat import pprint, pinput
 from vinput import vinput, VALID_VALID, VALID_NONEMPTY, VALID_NUMBER, VALID_FLOAT, VALID_LIST
 
 FIRST_RUN = False
+conf = {}
 
+def leave():
+	print(":yellow::bold:Something went wrong. Exiting.")
+	sys.exit(0)
 
 if (not os.path.exists("config.json")):
 	FIRST_RUN = True
 	pprint(":bold:We will need to set a few things up a little at the begining.")
-	conf_store = vinput("Do you want to store these settings? Passwords will be stored unencrypted :red:!INSECURE!:-:",None,VALID_LIST,["y","n"])
+	conf["store"] = vinput("Do you want to store these settings? Passwords will be stored unencrypted :red:!INSECURE!:-:",None,VALID_LIST,["y","n"])
 	settings_return = True
 	pprint("\n")
 	#DB settings
 	pprint(":green:"+eline)
 	pprint(":bold::green:#DB Settings#")
 	pprint(":green:"+eline)
-	db_host = vinput("Database host","localhost")
-	db_user = vinput("Database user name",None,VALID_NONEMPTY)
-	db_pass = vinput("Database password :red:!VISIBLE!:-:","")
-	db_name = vinput("Database name","dme")
+	conf["db_host"] = vinput("Database host","localhost")
+	conf["db_user"] = vinput("Database user name",None,VALID_NONEMPTY)
+	conf["db_pass"] = vinput("Database password :red:!VISIBLE!:-:","")
+	conf["db_name"] = vinput("Database name","dme")
 	pprint("\n")
 	pprint(":green:"+eline)
 	pprint(":bold::green:#Web Server settings#")
 	pprint(":green:"+eline)
 	
-	www_remote = vinput("Local webserver or remote (FTP)",None,VALID_LIST,["local","ftp"]).lower()
-	if (www_remote=="local"):
+	conf["www_remote"] = vinput("Local webserver or remote (FTP)",None,VALID_LIST,["local","ftp"]).lower()
+	if (conf["www_remote"]=="local"):
 		### Local webserver
 		while True:
-			www_location = os.path.abspath(vinput("WWW data location","/var/www/dme"))
-			www_overwrite = "y"
-			if (os.path.exists(www_location)):
-				www_overwrite = vinput("Location exists, overwrite?",None,VALID_LIST,["y","n"])
-				if (www_overwrite.lower()=="n"): continue
+			conf["www_location"] = os.path.abspath(vinput("WWW data location","/var/www/dme"))
+			conf["www_overwrite"] = "y"
+			if (os.path.exists(conf["www_location"])):
+				conf["www_overwrite"] = vinput("Location exists, overwrite?",None,VALID_LIST,["y","n"])
+				if (conf["www_overwrite"].lower()=="n"): continue
 				else: break
 			else:
 				try:
-					os.makedirs(www_location)
+					os.makedirs(conf["www_location"])
 				except Exception as m:
 					pprint(":red:"+str(m)+":-:")
 					pprint(":red::bold:Invalid path or insufficient rights.:-:")
@@ -77,8 +81,20 @@ if (not os.path.exists("config.json")):
 			break
 	else:
 		### FTP webserver
-		ftp_host = vinput("FTP host","localhost")
-		ftp_port = int(vinput("FTP port",21,VALID_NUMBER))
-		ftp_user = vinput("FTP user",None,VALID_NONEMPTY)
-		ftp_pass = vinput("FTP password :red:!VISIBLE!:-:","")
-		pprint("FTP settings review: :green:ftp://%s@%s:%d:-:"%(ftp_user,ftp_host,ftp_port))
+		conf["ftp_host"] = vinput("FTP host","localhost")
+		#conf["ftp_port"] = int(vinput("FTP port",21,VALID_NUMBER)) #not available yet
+		conf["ftp_user"] = vinput("FTP user",None,VALID_NONEMPTY)
+		conf["ftp_pass"] = vinput("FTP password :red:!VISIBLE!:-:","")
+		pprint("FTP settings review: :green:ftp://%s@%s:-:"%(conf["ftp_user"],conf["ftp_host"]))
+		pprint(":yellow:Attempting connection to the FTP server... ")
+		try: ftp = FTP(conf["ftp_host"],conf["ftp_user"],conf["ftp_pass"])
+		except Exception as m:
+			pprint(":red::bold:Failed:normal:\t:red::bwhite:%s"%str(m))
+			leave()
+		pprint(":green::bold:Success\t:bwhite:Connected")
+		while True:
+			conf["www_location"]= vinput("FTP www files location","www/dme",VALID_NONEMPTY)
+			try:
+				ftp.cwd(conf["www_location"])
+				pprint(":yellow:Remote directory already exists.")
+				
