@@ -97,4 +97,4 @@ if (not os.path.exists("config.json")):
 			try:
 				ftp.cwd(conf["www_location"])
 				pprint(":yellow:Remote directory already exists.")
-				
+
