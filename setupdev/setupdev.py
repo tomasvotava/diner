@@ -30,6 +30,7 @@ eline = "#################################"
 
 import os
 import json
+import sys
 from ftplib import FTP
 
 from pformat import pprint, pinput
@@ -81,20 +82,34 @@ if (not os.path.exists("config.json")):
 			break
 	else:
 		### FTP webserver
-		conf["ftp_host"] = vinput("FTP host","localhost")
-		#conf["ftp_port"] = int(vinput("FTP port",21,VALID_NUMBER)) #not available yet
-		conf["ftp_user"] = vinput("FTP user",None,VALID_NONEMPTY)
-		conf["ftp_pass"] = vinput("FTP password :red:!VISIBLE!:-:","")
-		pprint("FTP settings review: :green:ftp://%s@%s:-:"%(conf["ftp_user"],conf["ftp_host"]))
-		pprint(":yellow:Attempting connection to the FTP server... ")
-		try: ftp = FTP(conf["ftp_host"],conf["ftp_user"],conf["ftp_pass"])
-		except Exception as m:
-			pprint(":red::bold:Failed:normal:\t:red::bwhite:%s"%str(m))
-			leave()
-		pprint(":green::bold:Success\t:bwhite:Connected")
 		while True:
-			conf["www_location"]= vinput("FTP www files location","www/dme",VALID_NONEMPTY)
+			conf["ftp_host"] = vinput("FTP host","localhost")
+			#conf["ftp_port"] = int(vinput("FTP port",21,VALID_NUMBER)) #not available yet
+			conf["ftp_user"] = vinput("FTP user",None,VALID_NONEMPTY)
+			conf["ftp_pass"] = vinput("FTP password :red:!VISIBLE!:-:","")
+			pprint("FTP settings review: :green:ftp://%s@%s:-:"%(conf["ftp_user"],conf["ftp_host"]))
+			pprint(":yellow:Attempting connection to the FTP server... ")
+			try:
+				ftp = FTP(conf["ftp_host"],conf["ftp_user"],conf["ftp_pass"])
+				pprint(":green::bold:Success\t:bwhite:Connected")
+				break
+			except Exception as m:
+				pprint(":red::bold:Failed:normal:\t:red::bwhite:%s"%str(m))
+				continue
+		while True:
+			conf["www_location"]= vinput("FTP www files location","www/dme")
 			try:
 				ftp.cwd(conf["www_location"])
 				pprint(":yellow:Remote directory already exists.")
-
+				while True:
+					conf["www_overwrite"] = vinput("Overwrite remote directory?",None,VALID_LIST,["y","n"])
+					if (conf["www_overwrite"].lower()=="n"): continue
+					else: break
+			except Exception as m:
+				try:
+					ftp.mkd(conf["www_location"])
+					pprint(":green:Output location created successfully.")
+					break
+				except Exception as m:
+					pprint(":red:Specified location cannot be used.:bwhite:\t%s"%str(m))
+					continue
