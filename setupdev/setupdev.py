@@ -147,6 +147,10 @@ else: #previous config found
 		pprint("#:cyan:FTP Settings: :bold:%s@%s:%s"%(conf["ftp_user"],conf["ftp_host"],conf["www_location"]))
 	else:
 		pprint("#:cyan:Web location: :bold:%s"%(conf["www_location"]))
+	if (vinput("Do you want to start over? :red::bold:Previous configuration will be deleted.",None,VALID_LIST,["y","n"]).lower()=="y"):
+		os.remove("config.json")
+		pprint(":yellow:Configuration was deleted, start the script again to start over.")
+		sys.exit(0)
 pprint(":green:"+eline)
 pprint(":bold::green:#Required info gathered#")
 pprint(":green:"+eline)
@@ -154,3 +158,44 @@ pprint(":yellow:Press ENTER to start deployment, Ctrl+C to quit...")
 try: input("")
 except KeyboardInterrupt: sys.exit(0)
 	
+### START Deployment
+pprint(":yellow:### Deploying the db")
+pprint(":yellow:Connecting...")
+try:
+	mydb = mysql.connect(host=conf["db_host"],user=conf["db_user"],passwd=conf["db_pass"],database=conf["db_name"])
+	mcur = mydb.cursor(buffered=True)
+	pprint(":green:Connected.")
+	query = "SHOW TABLES"
+	mcur.execute(query)
+	if (mcur.rowcount!=0):
+		pprint(":cyan:There are tables in :bold:%s"%conf["db_name"])
+		if (vinput("Do you wish to use the db anyway?",None,VALID_LIST,["y","n"]).lower()=="n"):
+			sys.exit(0)
+	mcur.close()
+except Exception as m:
+	pprint(":red:Could not connect. Exiting.")
+	pprint(":red::bold:%s"%str(m))
+	sys.exit(0)
+with open("../db/diner.sql","r") as sqlfile:
+	sql = sqlfile.read()
+	pprint(":yellow:Creating schema...")
+	mcur = mydb.cursor(buffered=True)
+	try:
+		results = mcur.execute(sql,multi=True)
+		for cur in results:
+			if cur.with_rows: pprint(":yellow:%s"%str(cur.fetchall()))
+		pprint(":green::bold:Done.")
+	except Exception as m:
+		pprint(":red:Could not create DB schema.\t:bold:%s"%str(m))
+		sys.exit(0)
+if conf["www_remote"].lower()=="y":
+	ftp = FTP(conf["ftp_host"],conf["ftp_user"],conf["ftp_pass"])
+	ftp.cwd(conf["www_location"])
+else:
+	ftp = None
+pprint("\n:yellow:Copying files for web server...")
+for dirpath, dirnames, filenames in os.walk("../www/"):
+	for dname in dirnames:
+		pass
+	for fname in filenames:
+		source = os.path.abspath(os.path.join(dirpath,fname))
