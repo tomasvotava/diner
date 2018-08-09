@@ -32,7 +32,7 @@ eline = "#################################"
 import os
 import json
 import sys
-from ftplib import FTP
+from ftplib import FTP as _FTP, error_perm as ftp_error_perm
 
 from pformat import pprint, pinput
 from vinput import vinput, VALID_VALID, VALID_NONEMPTY, VALID_NUMBER, VALID_FLOAT, VALID_LIST
@@ -42,6 +42,21 @@ import mysql.connector as mysql
 FIRST_RUN = False
 conf = {}
 
+class FTP(_FTP):
+	def __init__(self,host,user,passwd):
+		_FTP.__init__(self,host,user,passwd)
+	def exists(self,path):
+		cur = self.pwd()
+		texists = False
+		try:
+			self.cwd(path)
+			texists = True
+			self.cwd(cur)
+		except ftp_error_perm as m:
+			#Borrowed from https://stackoverflow.com/questions/5663787/upload-folders-from-local-system-to-ftp-using-python-script
+			if (str(m.args).count("550")):
+				texists = False
+		return texists
 def leave():
 	print(":yellow::bold:Something went wrong. Exiting.")
 	sys.exit(0)
@@ -110,15 +125,14 @@ if (not os.path.exists("config.json")):
 				continue
 		while True:
 			conf["www_location"]= vinput("FTP www files location","www/dme")
-			try:
-				ftp.cwd(conf["www_location"])
+			if (ftp.exists(conf["www_location"])):
 				pprint(":yellow:Remote directory already exists.")
 				while True:
 					conf["www_overwrite"] = vinput("Overwrite remote directory?",None,VALID_LIST,["y","n"])
 					if (conf["www_overwrite"].lower()=="n"): continue
 					else: break
 				break
-			except Exception as m:
+			else:
 				try:
 					ftp.mkd(conf["www_location"])
 					pprint(":green:Output location created successfully.")
@@ -184,18 +198,23 @@ with open("../db/diner.sql","r") as sqlfile:
 		results = mcur.execute(sql,multi=True)
 		for cur in results:
 			if cur.with_rows: pprint(":yellow:%s"%str(cur.fetchall()))
-		pprint(":green::bold:Done.")
+		pprint(":green::bold:Done.\n")
 	except Exception as m:
 		pprint(":red:Could not create DB schema.\t:bold:%s"%str(m))
 		sys.exit(0)
-if conf["www_remote"].lower()=="y":
+if conf["www_remote"].lower()=="ftp":
 	ftp = FTP(conf["ftp_host"],conf["ftp_user"],conf["ftp_pass"])
+	pprint(":magenta:FTP:Changing directory to %s"%conf["www_location"])
+	if (not ftp.exists(conf["www_location"])): ftp.mkd(conf["www_location"])
 	ftp.cwd(conf["www_location"])
 else:
 	ftp = None
-pprint("\n:yellow:Copying files for web server...")
-for dirpath, dirnames, filenames in os.walk("../www/"):
-	for dname in dirnames:
-		pass
+
+pprint(":yellow:Copying files for web server...")
+wwwsource = "../www/"
+for dirpath, dirnames, filenames in os.walk(wwwsource):
 	for fname in filenames:
+		pprint(":cyan:File")
 		source = os.path.abspath(os.path.join(dirpath,fname))
+		localpath = os.path.abspath(os.path.join(dirpath,fname))
+		print("Local path: %s, remote path: %s"%(localpath,os.path.relpath(localpath)))
