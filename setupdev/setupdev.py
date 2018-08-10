@@ -216,5 +216,10 @@ for dirpath, dirnames, filenames in os.walk(wwwsource):
 	for fname in filenames:
 		pprint(":cyan:File")
 		source = os.path.abspath(os.path.join(dirpath,fname))
-		localpath = os.path.abspath(os.path.join(dirpath,fname))
-		print("Local path: %s, remote path: %s"%(localpath,os.path.relpath(localpath)))
+		remote = os.path.relpath(source,wwwsource)
+		head,tail = os.path.split(remote)
+		if head:
+			if not ftp.exists(head):
+				pprint(":cyan:Creating remote folder \'%s\'..."%head)
+				ftp.mkd(head)
+		
