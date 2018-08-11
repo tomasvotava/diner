@@ -34,8 +34,10 @@ import json
 import sys
 from ftplib import FTP as _FTP, error_perm as ftp_error_perm
 
-from pformat import pprint, pinput
+from pformat import pprint, pinput, pformat
 from vinput import vinput, VALID_VALID, VALID_NONEMPTY, VALID_NUMBER, VALID_FLOAT, VALID_LIST
+
+from math import ceil
 
 import mysql.connector as mysql
 
@@ -45,6 +47,8 @@ conf = {}
 class FTP(_FTP):
 	def __init__(self,host,user,passwd):
 		_FTP.__init__(self,host,user,passwd)
+		self.transfered = 0
+		self.fsize = 0
 	def exists(self,path):
 		cur = self.pwd()
 		texists = False
@@ -57,6 +61,15 @@ class FTP(_FTP):
 			if (str(m.args).count("550")):
 				texists = False
 		return texists
+	def stor(self,dest,source):
+		self.transfered = 0
+		self.fsize = os.path.getsize(source)
+		with open(source,"rb") as infile:
+			self.storbinary("STOR %s"%dest,infile,callback=self.storcallback)
+	def storcallback(self,datablock):
+		self.transfered+=len(datablock)
+		sys.stdout.write(":cyan:Transfering %d / %d bytes (%d %%)                       \r"%(self.transfered,self.fsize,ceil(self.transfered/self.fsize*100)))
+		
 def leave():
 	print(":yellow::bold:Something went wrong. Exiting.")
 	sys.exit(0)
@@ -220,6 +233,8 @@ for dirpath, dirnames, filenames in os.walk(wwwsource):
 		head,tail = os.path.split(remote)
 		if head:
 			if not ftp.exists(head):
-				pprint(":cyan:Creating remote folder \'%s\'..."%head)
+				pprint(":cyan:Creating remote folder \'%s\'"%head)
 				ftp.mkd(head)
+			pprint(":cyan:Current directory \'%s\'"%head)
+			ftp.cwd(head)
 		
