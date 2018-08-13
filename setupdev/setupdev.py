@@ -66,9 +66,18 @@ class FTP(_FTP):
 		self.fsize = os.path.getsize(source)
 		with open(source,"rb") as infile:
 			self.storbinary("STOR %s"%dest,infile,callback=self.storcallback)
+			sys.stdout.write(80*" "+"\r")
 	def storcallback(self,datablock):
 		self.transfered+=len(datablock)
-		sys.stdout.write(":cyan:Transfering %d / %d bytes (%d %%)                       \r"%(self.transfered,self.fsize,ceil(self.transfered/self.fsize*100)))
+		sys.stdout.write(pformat(":yellow:Transfering %d / %d bytes (%d %%)                       \r"%(self.transfered,self.fsize,ceil(self.transfered/self.fsize*100))))
+	def makedirs(self,path):
+		path = os.path.normpath(path)
+		parts = path.split(os.sep)
+		current = self.pwd()
+		for p in parts:
+			if (not self.exists(p)): self.mkd(p)
+			self.cwd(p)
+		self.cwd(current)
 		
 def leave():
 	print(":yellow::bold:Something went wrong. Exiting.")
@@ -217,24 +226,23 @@ with open("../db/diner.sql","r") as sqlfile:
 		sys.exit(0)
 if conf["www_remote"].lower()=="ftp":
 	ftp = FTP(conf["ftp_host"],conf["ftp_user"],conf["ftp_pass"])
-	pprint(":magenta:FTP:Changing directory to %s"%conf["www_location"])
+	pprint(":magenta:FTP:Changing directory to \'%s\'"%conf["www_location"])
 	if (not ftp.exists(conf["www_location"])): ftp.mkd(conf["www_location"])
 	ftp.cwd(conf["www_location"])
 else:
 	ftp = None
 
-pprint(":yellow:Copying files for web server...")
 wwwsource = "../www/"
 for dirpath, dirnames, filenames in os.walk(wwwsource):
 	for fname in filenames:
-		pprint(":cyan:File")
+		pprint(":cyan:Copy file \'%s\'"%fname)
 		source = os.path.abspath(os.path.join(dirpath,fname))
 		remote = os.path.relpath(source,wwwsource)
 		head,tail = os.path.split(remote)
 		if head:
 			if not ftp.exists(head):
 				pprint(":cyan:Creating remote folder \'%s\'"%head)
-				ftp.mkd(head)
+				ftp.makedirs(head)
 			pprint(":cyan:Current directory \'%s\'"%head)
 			ftp.cwd(head)
-		
+		ftp.stor(fname,source)
